@@ -43,6 +43,9 @@ In daily work, it is unavoidable to encounter Japanese tasks, specifications, or
 
 ## Project Structure
 
+## Project Structure
+
+```text
 jp-assist-ai/
 ├─ README.md
 ├─ pyproject.toml                 # Dependency management (poetry / uv / pip-tools)
@@ -117,6 +120,7 @@ jp-assist-ai/
       │  └─ rewrite_service.py
       └─ cli/
          └─ main.py               # Quick CLI testing (translate image/text from terminal)
+```
 
 ### Design Principles
 - **Separation of concerns**: UI, business logic, and external integrations are clearly separated.
