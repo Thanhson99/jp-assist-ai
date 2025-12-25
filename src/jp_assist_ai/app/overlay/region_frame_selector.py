@@ -16,9 +16,8 @@ class Region:
     h: int
 
 
-class _ScreenOverlay(QWidget):
-    """One overlay window per physical screen."""
-    regionSelected = Signal(object)  # emits Region
+class _FrameOverlay(QWidget):
+    regionSelected = Signal(object)
     cancelled = Signal()
 
     def __init__(self, screen_geo: QRect):
@@ -29,16 +28,12 @@ class _ScreenOverlay(QWidget):
             | Qt.Tool
         )
         self.setAttribute(Qt.WA_TranslucentBackground, True)
-
-        # macOS: keep tool window visible even when app loses focus
         self.setAttribute(Qt.WA_MacAlwaysShowToolWindow, True)
         self.setCursor(Qt.CrossCursor)
-
-        # Cover exactly this screen (geometry can include negative x)
         self.setGeometry(screen_geo)
 
-        self._start = None  # type: tuple[int,int] | None
-        self._end = None    # type: tuple[int,int] | None
+        self._start = None  # type: tuple[int, int] | None
+        self._end = None  # type: tuple[int, int] | None
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
@@ -74,11 +69,9 @@ class _ScreenOverlay(QWidget):
     def _rect(self) -> QRect | None:
         if not (self._start and self._end):
             return None
-
         x1g, y1g = self._start
         x2g, y2g = self._end
 
-        # Convert GLOBAL coords -> LOCAL coords (per-screen window)
         gx = self.geometry().left()
         gy = self.geometry().top()
 
@@ -97,10 +90,6 @@ class _ScreenOverlay(QWidget):
     def paintEvent(self, _event):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing, True)
-
-        # Dim background (this screen)
-        painter.fillRect(self.rect(), QColor(0, 0, 0, 80))
-
         rect = self._rect()
         if rect:
             pen = QPen(QColor(0, 180, 255, 230))
@@ -108,35 +97,26 @@ class _ScreenOverlay(QWidget):
             painter.setPen(pen)
             painter.drawRect(rect)
 
-            # Clear inside selection
-            painter.setCompositionMode(QPainter.CompositionMode_Clear)
-            painter.fillRect(rect, QColor(0, 0, 0, 0))
 
-
-class RegionSelector(QWidget):
-    """
-    Multi-monitor region selector (macOS-safe):
-    creates one overlay window per screen.
-    """
-    regionSelected = Signal(object)  # emits Region
+class RegionFrameSelector(QWidget):
+    regionSelected = Signal(object)
 
     def __init__(self):
         super().__init__()
         self.setAttribute(Qt.WA_DeleteOnClose, True)
-        self._overlays: list[_ScreenOverlay] = []
+        self._overlays: list[_FrameOverlay] = []
 
         screens = QGuiApplication.screens()
         if not screens:
-            # Fallback: single overlay fullscreen
-            ov = _ScreenOverlay(QGuiApplication.primaryScreen().geometry())
+            ov = _FrameOverlay(QGuiApplication.primaryScreen().geometry())
             self._attach_overlay(ov)
             return
 
         for s in screens:
-            ov = _ScreenOverlay(s.geometry())
+            ov = _FrameOverlay(s.geometry())
             self._attach_overlay(ov)
 
-    def _attach_overlay(self, ov: _ScreenOverlay) -> None:
+    def _attach_overlay(self, ov: _FrameOverlay) -> None:
         ov.regionSelected.connect(self._on_region_selected)
         ov.cancelled.connect(self.close)
         self._overlays.append(ov)
@@ -148,7 +128,6 @@ class RegionSelector(QWidget):
             ov.activateWindow()
 
     def close(self) -> None:
-        # Close all overlays
         for ov in self._overlays:
             try:
                 ov.close()

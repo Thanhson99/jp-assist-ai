@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jp-assist-ai"
+version = "0.1.0"
+description = "JP Assist AI - on-screen OCR translation + Japanese writing assistant"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "PySide6>=6.6",
+  "QHotkey>=1.3",
+  "pynput>=1.7",
+  "openai>=1.40",
+  "mss>=9.0",
+  "Pillow>=10.0",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]

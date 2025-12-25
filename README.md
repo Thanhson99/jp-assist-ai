@@ -34,10 +34,10 @@ In daily work, it is unavoidable to encounter Japanese tasks, specifications, or
 
 ## MVP Scope (macOS First)
 
-1. Global hotkey → select screen region  
-2. Capture selected region → OCR  
-3. OCR text → AI translation + explanation  
-4. Display result in an overlay / popup with copy support  
+1. Menu bar app → select screen region  
+2. Capture selected region → show editable preview window  
+3. Highlight target text → AI translation (JP → VI by default)  
+4. Save image (raw / with highlights / with chat)  
 
 ---
 
@@ -109,7 +109,10 @@ jp-assist-ai/
       │  ├─ tray.py               # Menu bar / tray application
       │  ├─ overlay/
       │  │  ├─ overlay_window.py  # Translation popup / overlay window
-      │  │  └─ region_selector.py # Screen region selection
+      │  │  ├─ annotation_canvas.py
+      │  │  ├─ floating_capture_window.py
+      │  │  ├─ region_selector.py # Screen region selection
+      │  │  └─ region_frame_selector.py
       │  ├─ screens/
       │  │  ├─ settings_window.py
       │  │  └─ history_window.py
@@ -132,10 +135,9 @@ jp-assist-ai/
 ## Processing Pipeline
 Screen Region Selection
 - **Screen Capture**
-- **OCR**
-- **Text Normalization**
-- **AI Translation / Explanation / Rewrite**
-- **Overlay Rendering**
+- **Editable Preview (highlight / brush / erase)**
+- **AI Translation (on demand)**
+- **Save result**
 
 
 ---
@@ -146,7 +148,7 @@ Screen Region Selection
 - **Screen capture**: mss / native macOS APIs
 - **OCR**: PaddleOCR or Tesseract
 - **AI / LLM**:
-  - Cloud: OpenAI / Claude
+  - Cloud: OpenAI (current), Claude (planned)
   - Local (optional): llama.cpp / Ollama
 - **Storage**: SQLite (history, glossary, cache)
 
@@ -155,10 +157,26 @@ Screen Region Selection
 ## Development (Temporary)
 
 ```bash
+python3 -m pip install -e .
+```
+
+```bash
 ./scripts/dev_run.sh
 ```
 
 > Note: This is a temporary development entry point and may change as the project evolves.
+
+Environment variables:
+
+```bash
+export OPENAI_API_KEY="your_key"
+```
+
+Run directly:
+
+```bash
+python3 -m jp_assist_ai.app.main
+```
 
 ---
 
@@ -173,7 +191,8 @@ See docs/roadmap.md for detailed milestones.
 The following permissions are required on macOS:
 
 - Screen Recording: required for screen capture and OCR.
-- Accessibility: may be required for global hotkeys and overlay interactions.
+- Accessibility: required for global hotkeys and overlay interactions.
+- Input Monitoring: required for global hotkeys when using pynput.
 
 ---
 
